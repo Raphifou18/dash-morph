@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Dash Morph</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game" width="1280" height="720"></canvas>
+
+    <div id="hud" hidden>
+      <div id="hud-left">
+        <p id="hud-title">0 m</p>
+        <p id="hud-sub">Désert</p>
+        <p id="hud-status"></p>
+      </div>
+      <div id="hud-right">
+        <div id="lives-wrap"><span class="heart" aria-hidden="true"></span><span id="lives">0</span><span id="life-pop">-1</span></div>
+        <div id="coins-wrap"><span class="coin" aria-hidden="true"></span><span id="coins">0</span></div>
+        <div id="gems-wrap"><span class="gem" aria-hidden="true"></span><span id="gems">0</span></div>
+        <button id="btn-pause" type="button" aria-label="Pause"><span></span><span></span></button>
+      </div>
+    </div>
+
+    <section id="screen-menu">
+      <div class="poster">
+        <p class="eyebrow">Course locale</p>
+        <h1>Dash Morph</h1>
+        <p class="lead">Le coureur saute. Le vaisseau plane. Les pièces restent sur ce poste.</p>
+        <div class="previews">
+          <canvas id="preview" width="180" height="140"></canvas>
+          <canvas id="preview-ship" width="180" height="110"></canvas>
+        </div>
+        <p id="menu-equipped" class="equipped"></p>
+        <p class="purse"><span class="coin"></span><span id="menu-coins">0</span><span class="gem"></span><span id="menu-gems">0</span></p>
+        <div class="menu-actions">
+          <button id="btn-endless" type="button">Infini</button>
+          <button id="btn-adventure" type="button">Aventure</button>
+          <button id="btn-tempo" type="button">Musique</button>
+          <button id="btn-shop" type="button" class="ghost">Boutique</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-levels" hidden>
+      <div class="panel panel-wide">
+        <header class="panel-head">
+          <button id="btn-levels-back" type="button" class="back">Retour</button>
+          <h2>Aventure</h2>
+        </header>
+        <p id="level-note"></p>
+        <div id="level-list"></div>
+        <div class="shop-pages">
+          <button id="btn-level-prev" type="button">Précédente</button>
+          <p id="level-page">Niveaux · 1 / 3</p>
+          <button id="btn-level-next" type="button">Suivante</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-tempo" hidden>
+      <div class="panel panel-wide">
+        <header class="panel-head">
+          <button id="btn-tempo-back" type="button" class="back">Retour</button>
+          <h2>Musique</h2>
+        </header>
+        <p id="tempo-note"></p>
+        <div id="tempo-list"></div>
+        <div class="shop-pages">
+          <button id="btn-tempo-prev" type="button">Précédente</button>
+          <p id="tempo-page">Mondes · 1 / 3</p>
+          <button id="btn-tempo-next" type="button">Suivante</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-shop" hidden>
+      <div class="panel panel-wide">
+        <header class="panel-head">
+          <button id="btn-shop-back" type="button" class="back">Retour</button>
+          <h2>Boutique</h2>
+          <p class="purse"><span class="coin"></span><span id="shop-coins">0</span><span class="gem"></span><span id="shop-gems">0</span></p>
+        </header>
+        <p id="shop-note"></p>
+        <div id="shop-grid"></div>
+        <div class="shop-pages">
+          <button id="btn-shop-prev" type="button">Précédente</button>
+          <p id="shop-page">Skins · 1 / 2</p>
+          <button id="btn-shop-next" type="button">Suivante</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="action-dock" hidden>
+      <div class="stack">
+        <p id="dock-title">Pause</p>
+        <p id="dock-prime" hidden></p>
+        <button id="btn-resume" type="button" hidden>Reprendre</button>
+        <div class="row">
+          <button id="btn-restart" type="button"><span>Recommencer</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2c4.4 0 7.4 2.7 7.4 6.4 0 3.3-2.3 5.5-5.2 5.5-2.5 0-4.2-1.5-4.2-3.3 0-1.6 1.2-2.7 2.7-2.7 1.2 0 2.1.7 2.1 1.7"/><path d="M17.4 5.8l2.6-2.5.15 3.4"/></svg></button>
+          <button id="btn-quit" type="button">Quitter</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="clear-dock" hidden>
+      <div class="stack">
+        <p id="clear-title">Niveau réussi</p>
+        <p id="clear-sub"></p>
+        <p id="clear-prime"></p>
+        <div class="row">
+          <button id="btn-replay" type="button">Rejouer</button>
+          <button id="btn-next" type="button">Niveau suivant</button>
+        </div>
+        <button id="btn-clear-menu" type="button" class="ghost">Menu</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/save.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/bonuses.js"></script>
+  <script src="js/slingshot.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
