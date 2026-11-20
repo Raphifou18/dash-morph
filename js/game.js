@@ -236,6 +236,16 @@
       this.lastPrime = 0;
       this.attemptTime = 0;
       this.lastBeat = -1;
+      this.recordPlayed = false;
+      this.recordT = 0;
+      this.recordSpoke = false;
+      this.recordLine = 0;
+      if (DM.save && DM.save.ready) {
+        var board = DM.save.ready();
+        var top = board.scores && board.scores[0] ? board.scores[0].m : 0;
+        this.recordLine = Math.max(top, board.bestDistance | 0);
+      }
+      this.stopRecordVoice();
       this.state = "play";
       if (DM.music) {
         if (this.mode === "tempo") DM.music.stop();
@@ -313,6 +323,15 @@
         this.menuTime += realDt;
       } else if (this.state === "dead" || this.state === "clear") {
         DM.fx.tick(realDt, 0);
+      } else if (this.state === "record") {
+        this.recordT = (this.recordT || 0) + realDt;
+        if (!this.recordSpoke && this.recordT >= 3) {
+          this.recordSpoke = true;
+          this.speakRecord();
+        }
+        if (this.player) this.player.anim += realDt;
+        if (this.world) this.world.time += realDt;
+        if (this.recordT >= 12) this.endRecord();
       }
       if (DM.music) {
         if (this.state === "play" && this.mode === "endless" && this.world && this.player) {
@@ -321,6 +340,11 @@
         DM.music.tick();
       }
       DM.input.jumpEdge = false;
+      if (this.mode === "endless" && this.player && this.world && DM.save) DM.save.noteDistance(this.distance());
+      if (this.state === "play" && this.mode === "endless" && !this.recordPlayed) {
+        var line = this.recordLine | 0;
+        if (line > 0 && Math.floor(this.distance()) > line) this.beginRecord();
+      }
       this.draw();
       if (DM.ui) DM.ui.sync(this);
     },
@@ -784,6 +808,7 @@
       DM.bonus.clear();
       if (DM.music) DM.music.stop();
       var dist = this.distance();
+      if (this.mode === "endless" && DM.save) DM.save.addScore(dist, this.attemptTime || 0);
       this.lastPrime = Math.floor(dist / DM.config.distancePerCoin);
       if (this.lastPrime > 0) DM.save.addCoins(this.lastPrime);
       this.player.freeFly = false;
@@ -818,12 +843,13 @@
     },
     quit: function () {
       if (DM.music) DM.music.stop();
+      this.stopRecordVoice();
       this.state = "menu";
       this.player = null;
       if (DM.ui) DM.ui.show("menu");
     },
     togglePause: function () {
-      if (this.state === "ceilingFall" || this.state === "ceilingWait" || this.state === "ceilingSave" || this.state === "pitfall" || this.state === "iris" || this.state === "pastwait" || this.state === "pastdrop" || this.state === "burn") return;
+      if (this.state === "ceilingFall" || this.state === "ceilingWait" || this.state === "ceilingSave" || this.state === "pitfall" || this.state === "iris" || this.state === "pastwait" || this.state === "pastdrop" || this.state === "burn" || this.state === "record") return;
       if (this.state === "play" || this.state === "slingshot") {
         this.stateBeforePause = this.state;
         this.state = "pause";
@@ -879,7 +905,7 @@
       var py = this.player ? this.player.y : DM.config.groundY;
       var world = this.world;
       var x = world && world.scrolling ? px - viewW * 0.38 : (world && world.introCamX ? world.introCamX : px - viewW * 0.28);
-      var hold = this.mode === "endless" && world && world.scrolling && (this.state === "play" || (this.state === "pause" && this.stateBeforePause === "play"));
+      var hold = this.mode === "endless" && world && world.scrolling && (this.state === "play" || this.state === "record" || (this.state === "pause" && this.stateBeforePause === "play"));
       if (hold) {
         if (this.camLockX == null || x > this.camLockX) this.camLockX = x;
         else x = this.camLockX;
@@ -919,9 +945,11 @@
         DM.drawChicken(ctx, this.chickenX || this.player.x, DM.config.groundY, true, this.world.time);
       }
       this.player.draw(ctx);
+      if (this.state === "record") this.drawTrophy(ctx);
       var showSling = this.state === "slingshot" || (this.state === "pause" && this.stateBeforePause === "slingshot");
       if (showSling) DM.sling.drawWorld(ctx, this);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
+      if (this.state === "record") this.drawRecordTitle(ctx);
       this.drawSpeedLines(ctx);
       this.drawBeat(ctx);
       DM.fx.draw(ctx, this);
@@ -966,6 +994,197 @@
         ctx.moveTo(1280, y);
         ctx.lineTo(980, y + 8);
         ctx.stroke();
+      }
+      ctx.restore();
+    },
+    beginRecord: function () {
+      if (this.state !== "play" || this.mode !== "endless" || this.recordPlayed) return;
+      this.recordPlayed = true;
+      this.recordT = 0;
+      this.recordSpoke = false;
+      this.state = "record";
+      if (this.player) this.player.extraVx = 0;
+      if (DM.music) DM.music.stop();
+    },
+    endRecord: function () {
+      if (this.state !== "record") return;
+      this.stopRecordVoice();
+      this.state = "play";
+      if (DM.music && this.mode === "endless") DM.music.resume();
+      if (DM.ui) DM.ui.show("play");
+    },
+    stopRecordVoice: function () {
+      if (!root.speechSynthesis) return;
+      try { root.speechSynthesis.cancel(); } catch (err) {}
+    },
+    speakRecord: function () {
+      if (!root.speechSynthesis || !root.SpeechSynthesisUtterance) return;
+      try {
+        root.speechSynthesis.cancel();
+        var line = new root.SpeechSynthesisUtterance("New high score");
+        line.lang = "en-US";
+        line.rate = 0.94;
+        line.pitch = 1.04;
+        line.volume = 1;
+        root.speechSynthesis.speak(line);
+      } catch (err) {}
+    },
+    recordEase: function (u) {
+      if (u < 0) u = 0;
+      if (u > 1) u = 1;
+      return u * u * (3 - 2 * u);
+    },
+    recordNudge: function (x, group) {
+      if (this.state !== "record") return 0;
+      var t = this.recordT || 0;
+      var cam = this.cam || { x: 0 };
+      var viewW = 1280 / (this.zoom || 1);
+      var center = cam.x + viewW * 0.5;
+      var dir = x < center ? -1 : 1;
+      var travel = viewW + 220;
+      var out = t >= 2 ? 1 : this.recordEase(t / 2);
+      var back = 0;
+      if (group === "build") {
+        if (t >= 9) back = 1;
+        else if (t >= 8) back = this.recordEase(t - 8);
+      } else if (t >= 11) back = 1;
+      else if (t >= 9) back = this.recordEase((t - 9) / 2);
+      return dir * travel * out * (1 - back);
+    },
+    drawTrophy: function (ctx) {
+      var t = this.recordT || 0;
+      if (t < 3 || t > 9) return;
+      var rise;
+      if (t < 3.9) rise = this.recordEase((t - 3) / 0.9);
+      else if (t < 8) rise = 1;
+      else rise = 1 - this.recordEase(t - 8);
+      if (rise <= 0.001) return;
+      var cam = this.cam || this.camera();
+      var viewW = 1280 / (this.zoom || 1);
+      var cx = cam.x + viewW * 0.5;
+      var ground = DM.config.groundY;
+      var c;
+      ctx.save();
+      ctx.fillStyle = "#3e2114";
+      ctx.beginPath();
+      ctx.ellipse(cx, ground + 6, 24 + 78 * rise, 8 + 10 * rise, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(48, 28, 14, " + (0.9 * rise) + ")";
+      ctx.lineWidth = 5;
+      for (c = 0; c < 7; c++) {
+        var side = c - 3;
+        ctx.beginPath();
+        ctx.moveTo(cx + side * 16, ground + 2);
+        ctx.lineTo(cx + side * (40 + rise * 34), ground + 8 + rise * 18);
+        ctx.stroke();
+      }
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(cam.x - 40, cam.y - 80, viewW + 80, ground - (cam.y - 80));
+      ctx.clip();
+      ctx.translate(cx, ground - rise * 390 + 20);
+      ctx.scale(1.55, 1.55);
+      var gold = ctx.createLinearGradient(-80, 0, 80, 160);
+      gold.addColorStop(0, "#a87410");
+      gold.addColorStop(0.35, "#ffe7a8");
+      gold.addColorStop(0.68, "#e2a83a");
+      gold.addColorStop(1, "#8a5a08");
+      ctx.fillStyle = gold;
+      ctx.beginPath();
+      ctx.moveTo(-78, 28);
+      ctx.quadraticCurveTo(-96, 118, -34, 148);
+      ctx.lineTo(34, 148);
+      ctx.quadraticCurveTo(96, 118, 78, 28);
+      ctx.closePath();
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#6a4208";
+      ctx.stroke();
+      ctx.fillStyle = "#fff1c4";
+      ctx.fillRect(-86, 16, 172, 16);
+      ctx.fillStyle = "#e2a83a";
+      ctx.fillRect(-12, 148, 24, 62);
+      ctx.beginPath();
+      ctx.ellipse(0, 214, 52, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#fff8eb";
+      ctx.font = "800 28px Trebuchet MS, Segoe UI, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("1", 0, 92);
+      ctx.restore();
+      for (c = 0; c < 8; c++) {
+        var hand = c < 4 ? -1 : 1;
+        var k = c % 4;
+        var px = cx + hand * (28 + k * 30) * (0.3 + rise);
+        var py = ground - rise * (18 + k * 16);
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(hand * rise * (0.35 + k * 0.18));
+        ctx.fillStyle = k % 2 ? "#c47b34" : "#e2a15a";
+        ctx.fillRect(-14, -7, 26 + k * 4, 12 + k * 2);
+        ctx.restore();
+      }
+      ctx.restore();
+    },
+    drawRecordTitle: function (ctx) {
+      var t = this.recordT || 0;
+      if (t < 3 || t >= 8) return;
+      var text = "NEW HIGH SCORE";
+      var bird = [
+        [-78, 16], [-56, 6], [-34, 0],
+        [-8, -8], [8, -4], [24, -16],
+        [46, -8], [18, -38], [2, -46],
+        [-20, 18], [-4, 28], [16, 20]
+      ];
+      ctx.save();
+      ctx.font = "800 68px Trebuchet MS, Segoe UI, sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      var glyphs = [];
+      var total = 0;
+      var i;
+      for (i = 0; i < text.length; i++) {
+        var ch = text.charAt(i);
+        var w = ctx.measureText(ch).width;
+        glyphs.push({ ch: ch, w: w });
+        total += w;
+      }
+      var titleX = (1280 - total) / 2;
+      var titleY = 248;
+      var fly = t < 6 ? 0 : this.recordEase((t - 6) / 2);
+      var pop = this.recordEase(Math.min(1, (t - 3) / 0.28));
+      var scale = t >= 6 ? 1 : 0.72 + 0.28 * pop;
+      if (fly <= 0) {
+        ctx.fillStyle = "rgba(255, 248, 235, 0.94)";
+        ctx.fillRect(titleX - 28, titleY - 54, total + 56, 108);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#1b140c";
+        ctx.strokeRect(titleX - 28, titleY - 54, total + 56, 108);
+      }
+      var cursor = titleX;
+      var bi = 0;
+      ctx.lineWidth = 8;
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#fff8eb";
+      ctx.fillStyle = "#1b140c";
+      for (i = 0; i < glyphs.length; i++) {
+        var glyph = glyphs[i];
+        var sx = cursor;
+        cursor += glyph.w;
+        if (glyph.ch === " ") continue;
+        var spot = bird[bi] || bird[bird.length - 1];
+        bi += 1;
+        var bx = 1040 + spot[0] * 1.7 + fly * 90;
+        var by = 230 + spot[1] * 1.8;
+        var x = sx + (bx - sx) * fly;
+        var y = titleY + (by - titleY) * fly;
+        ctx.save();
+        ctx.translate(x + glyph.w * 0.5, y);
+        ctx.scale(scale, scale);
+        ctx.strokeText(glyph.ch, 0, 0);
+        ctx.fillText(glyph.ch, 0, 0);
+        ctx.restore();
       }
       ctx.restore();
     }

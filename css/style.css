@@ -39,9 +39,28 @@ button { cursor: pointer; }
   top: 16px;
   right: 16px;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  pointer-events: auto;
+}
+#hud-purse {
+  display: flex;
   align-items: center;
   gap: 10px;
-  pointer-events: auto;
+}
+#hud-best {
+  margin: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 248, 235, 0.92);
+  border: 3px solid #1b140c;
+  box-shadow: 4px 4px 0 #1b140c;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 0.02em;
 }
 #lives-wrap { position: relative; }
 #life-pop {
@@ -122,6 +141,31 @@ h1 { margin: 4px 0 8px; font-size: 76px; line-height: 0.9; letter-spacing: -0.04
 .equipped { margin: 8px 0; font-weight: 800; }
 .purse { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 22px; margin: 0; }
 .menu-actions { display: flex; flex-direction: column; gap: 12px; width: 280px; margin-top: 8px; }
+.credit { margin: -4px 0 0; font-size: 12px; font-weight: 700; letter-spacing: 0.01em; }
+.scoreboard {
+  position: absolute;
+  top: 54px;
+  right: 48px;
+  width: 360px;
+  background: #fff8eb;
+  border: 4px solid #1b140c;
+  box-shadow: 8px 8px 0 #1b140c;
+  padding: 16px 18px 8px;
+}
+.scoreboard h2 { margin: 0 0 8px; font-size: 28px; }
+.scoreboard ol { list-style: none; margin: 0; padding: 0; }
+.scoreboard li {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 10px;
+  align-items: baseline;
+  font-weight: 800;
+  font-size: 20px;
+  padding: 8px 0;
+  border-top: 3px solid #1b140c;
+}
+.scoreboard li:first-child { border-top: 0; }
+.scoreboard li.empty { display: block; font-size: 16px; border-top: 0; }
 button {
   border: 3px solid #1b140c;
   background: #ffbf1f;
@@ -189,7 +233,7 @@ button.ghost, #btn-quit, #btn-clear-menu { background: #fff8eb; }
 .stack { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .row { display: flex; gap: 16px; }
 #dock-title, #clear-title { margin: 0; color: #fff8eb; font-size: 42px; font-weight: 800; text-shadow: 3px 3px 0 #1b140c; }
-#dock-prime, #clear-prime, #clear-sub { margin: 0; color: #fff8eb; font-weight: 800; font-size: 18px; }
+#dock-prime, #dock-score, #clear-prime, #clear-sub { margin: 0; color: #fff8eb; font-weight: 800; font-size: 18px; }
 #btn-restart { display: inline-flex; align-items: center; gap: 10px; }
 #btn-restart svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 #btn-next, #btn-replay { min-width: 180px; }

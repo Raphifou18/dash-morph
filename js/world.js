@@ -9,7 +9,8 @@
     { id: "city", name: "Ville de nuit", edge: "neon", sky: ["#241238", "#120818"], ground: "#2a2140", deep: "#1a132c", ink: "#d6d0ff", pit: "#07040e", accent: "#39f3ff", dust: "#ff4ad8" },
     { id: "jungle", name: "Jungle", edge: "leaves", sky: ["#d6f28a", "#3f8f4e"], ground: "#6d4a2e", deep: "#4e3420", ink: "#1c3a18", pit: "#14210f", accent: "#9be36a", dust: "#c6f59a" },
     { id: "space", name: "Espace", edge: "stars", sky: ["#1a1440", "#070814"], ground: "#3a4666", deep: "#232a40", ink: "#d5def5", pit: "#05060e", accent: "#9eb6ff", dust: "#f2f6ff" },
-    { id: "noel", name: "Noël", edge: "holly", sky: ["#d7ecff", "#6f93c4"], ground: "#f4f8fb", deep: "#d5e2ee", ink: "#24384c", pit: "#1a3044", accent: "#d23b4a", dust: "#ffffff" }
+    { id: "noel", name: "Noël", edge: "holly", sky: ["#d7ecff", "#6f93c4"], ground: "#f4f8fb", deep: "#d5e2ee", ink: "#24384c", pit: "#1a3044", accent: "#d23b4a", dust: "#ffffff" },
+    { id: "thanks", name: "Thanksgiving", edge: "harvest", sky: ["#ffe0b0", "#e07a32"], ground: "#c9843a", deep: "#8a4e1d", ink: "#5c2e12", pit: "#3a1c0c", accent: "#f2c14e", dust: "#f6d7a4" }
   ];
 
   DM.PAST_BIOME = {
@@ -276,7 +277,8 @@
   World.prototype.addPit = function (w, bridged, bare) {
     var spiked = !bare;
     if (!bare && !bridged && this.mode === "endless") {
-      var dist = Math.max(0, this.cursor - (this.startX || 0));
+      var origin = this.startX || DM.config.startX;
+      var dist = Math.max(0, this.cursor - origin);
       if (dist < 15000) spiked = true;
       else {
         this.pitSerial += 1;
@@ -307,6 +309,8 @@
 
   World.prototype.portalPit = function (player) {
     if (this.mode !== "endless" || !player) return null;
+    var traveled = player.x - (this.startX || DM.config.startX);
+    if (traveled < 15000) return null;
     var box = player.bounds();
     var C = DM.config;
     var i;
@@ -650,9 +654,9 @@
         dist = hopSpeed * t;
       }
       if (dist > air) dist = air;
-      var gap = Math.round(dist - 28);
-      if (gap > Math.round(air - 16)) gap = Math.round(air - 16);
-      if (gap < 74) gap = 74;
+      var gap = Math.round(dist - 40);
+      if (gap > Math.round(air - 28)) gap = Math.round(air - 28);
+      if (gap < 68) gap = 68;
       return gap;
     }
     for (i = 0; i < hops; i++) {
@@ -671,11 +675,11 @@
       var gap;
       if (this.mode === "tempo") gap = musicGap(i === 0 ? next : rise);
       else {
-        var ratio = rise > 10 ? 0.42 : rise < -8 ? 0.58 : 0.5;
+        var ratio = rise > 10 ? 0.39 : rise < -8 ? 0.54 : 0.46;
         gap = Math.round(air * ratio);
-        var cap = Math.round(air * (rise > 10 ? 0.5 : 0.64));
+        var cap = Math.round(air * (rise > 10 ? 0.46 : 0.6));
         if (gap > cap) gap = cap;
-        if (gap < 74) gap = 74;
+        if (gap < 68) gap = 68;
       }
       var trap = traps !== false && i > 0;
       pads.push({ gap: gap, w: padW, h: next, trap: trap });
@@ -944,7 +948,7 @@
     var air = this.jumpReach(this.cursor);
     if (!(air > 80)) air = 160;
     var above = 94;
-    var withSpikes = hash(this.cursor * 0.17 + this.patternSerial * 9) > 0.4;
+    var withSpikes = hash(this.cursor * 0.17 + this.patternSerial * 9) > 0.62;
     if (!withSpikes) {
       var plain = 124;
       this.addGround(plain + 180);
@@ -952,9 +956,9 @@
       this.addGround(80);
       return;
     }
-    var span = Math.round(air * 2.25);
-    var lead = Math.round(air * 0.45);
-    var tail = Math.round(air * 0.55);
+    var span = Math.round(air * 1.65);
+    var lead = Math.round(air * 0.42);
+    var tail = Math.round(air * 0.5);
     var shelfW = span - lead - tail;
     if (shelfW < 96) shelfW = 96;
     this.addGround(span + 140);
@@ -970,39 +974,39 @@
     var kind = this.patternSerial % 4;
     var air = this.jumpReach(this.cursor);
     if (!(air > 80)) air = 160;
-    var gap = Math.round(air * 0.58);
-    var cap = Math.round(air * 0.62);
+    var gap = Math.round(air * 0.44);
+    var cap = Math.round(air * 0.5);
     if (gap > cap) gap = cap;
-    if (gap < 88) gap = 88;
+    if (gap < 72) gap = 72;
     if (kind === 0) {
       this.addSpikeShelf();
       return;
     }
     if (kind === 1) {
-      this.addGround(Math.round(80 * stretch));
-      this.spike(this.cursor - Math.round(64 * stretch), 40 + (this.patternSerial % 3) * 14);
-      this.addGround(Math.round(64 * stretch));
-      this.block(this.cursor - Math.round(56 * stretch), 36, 46 + (this.patternSerial % 3) * 8);
-      this.addGround(56);
+      this.addGround(Math.round(120 * stretch));
+      this.spike(this.cursor - Math.round(72 * stretch), 32 + (this.patternSerial % 3) * 8);
+      this.addGround(Math.round(96 * stretch));
+      this.block(this.cursor - Math.round(64 * stretch), 32, 36 + (this.patternSerial % 3) * 6);
+      this.addGround(84);
       this.addPit(gap);
       this.addGround(64);
       return;
     }
     if (kind === 2) {
-      var steps = 4 + (this.patternSerial % 2);
-      var rise = 56;
+      var steps = 3;
+      var rise = 42;
       var salt = Math.floor(this.cursor + this.patternSerial * 17);
-      var extent = stairExtent(steps, rise, 1, salt, stretch);
+      var extent = stairExtent(steps, rise, 0.45, salt, stretch);
       this.addGround(36);
       var stairX = this.cursor;
       this.addGround(extent + 12);
-      this.addStair(stairX, steps, rise, 1, salt, stretch);
+      this.addStair(stairX, steps, rise, 0.45, salt, stretch);
       this.addGround(48);
       this.addPit(gap);
       this.addGround(70);
       return;
     }
-    var hops = this.patternSerial % 2 === 0 ? 5 : 4;
+    var hops = 3;
     this.addHopChain(hops, this.patternSerial % 4, Math.floor(this.cursor + this.patternSerial * 13), null);
   };
 
@@ -1431,7 +1435,7 @@
       if (e.dead || e.kind !== "hunter" || e.eaten) continue;
       var aim = player.x - e.w * 0.35;
       var gap = aim - e.x;
-      var speed = pace * 0.88;
+      var speed = pace * 0.76;
       if (gap > 0.5) e.x += speed * dt;
       else if (gap < -0.5) e.x -= speed * dt;
       e.dir = gap >= 0 ? 1 : -1;
@@ -1459,8 +1463,8 @@
       if (Math.abs(e.x - player.x) > 2100) e.dead = true;
     }
     this.hunterAcc = (this.hunterAcc || 0) + dt;
-    if (this.hunterAcc >= 2) {
-      this.hunterAcc -= 2;
+    if (this.hunterAcc >= 3.2) {
+      this.hunterAcc -= 3.2;
       this.spawnHunter(player);
     }
     if (this.rexPhase === "chase") this.tickRex(dt, player);
@@ -1468,7 +1472,7 @@
 
   World.prototype.spawnHunter = function (player) {
     this.hunterCount = (this.hunterCount || 0) + 1;
-    var hx = player.x - 520 - (this.hunterCount % 4) * 42;
+    var hx = player.x - 700 - (this.hunterCount % 4) * 56;
     var top = this.hunterSurface(hx + 18);
     this.spawn({
       kind: "hunter",
@@ -1594,6 +1598,7 @@
     if (biome.id === "city") return ["cat", "blimp", "lamp", "hydrant", "sign", "pigeon", "bench", "neon"];
     if (biome.id === "jungle") return ["parrot", "monkey", "flower", "frog", "totem", "bush", "mushroom", "vine", "toucan"];
     if (biome.id === "noel") return ["gift", "pine", "wreath", "cane", "bell", "snowman", "stocking", "lantern"];
+    if (biome.id === "thanks") return ["turkey", "pumpkin", "pie", "corn", "apple", "bread", "platter", "leaf"];
     return ["martian", "satellite", "comet", "crater", "flag", "robot", "pod", "rover"];
   };
 
@@ -1655,10 +1660,31 @@
     this.drawPits(ctx, biome, cam, viewW);
     this.drawGround(ctx, biome, cam, viewW);
     this.drawDecor(ctx, cam, viewW);
+    this.drawBiomeNote(ctx, biome, cam, viewW, viewH);
     this.drawEntities(ctx, biome, cam, viewW, viewH);
     if (this.rex) this.drawRex(ctx, this.rex);
     if (this.mode === "adventure" || this.mode === "tempo") this.drawFinish(ctx, biome);
     if (this.hasFire()) this.drawFireWall(ctx, cam, viewW, viewH);
+  };
+
+  World.prototype.drawBiomeNote = function (ctx, biome, cam, viewW, viewH) {
+    var text = "";
+    if (biome.id === "noel") text = "Merry Christmas   ho ho ho";
+    else if (biome.id === "thanks") text = "Merry Thanksgiving et Bon Appétit";
+    else return;
+    ctx.save();
+    ctx.font = "700 22px Trebuchet MS, Segoe UI, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.lineWidth = 6;
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "rgba(255, 248, 235, 0.94)";
+    ctx.fillStyle = "#1b140c";
+    var x = cam.x + viewW * 0.5;
+    var y = cam.y + viewH - 16;
+    ctx.strokeText(text, x, y);
+    ctx.fillText(text, x, y);
+    ctx.restore();
   };
 
   World.prototype.drawFireWall = function (ctx, cam, viewW, viewH) {
@@ -1767,6 +1793,24 @@
     } else if (biome.id === "jungle") {
       this.drawCanopy(ctx, cam, viewW, base, 0.002, "#1e4d28", 1);
       this.drawCanopy(ctx, cam, viewW, base + 16, 0.003, "#2f6a32", 0);
+    } else if (biome.id === "thanks") {
+      ctx.fillStyle = "#ffe08a";
+      ctx.beginPath();
+      ctx.arc(cam.x + viewW * 0.8, cam.y + 78, 40, 0, Math.PI * 2);
+      ctx.fill();
+      this.drawFernHills(ctx, cam, viewW, base + 8, 0.002, "#c46a28");
+      this.drawFernHills(ctx, cam, viewW, base + 28, 0.0035, "#e39a3c");
+      ctx.fillStyle = "#e07a32";
+      var leaf;
+      for (leaf = 0; leaf < 18; leaf++) {
+        var lx = cam.x + ((leaf * 91 + this.time * 0.35) % (viewW + 60)) - 20;
+        var ly = cam.y + ((leaf * 37 + this.time * 0.5) % (viewH * 0.7));
+        ctx.globalAlpha = 0.45;
+        ctx.beginPath();
+        ctx.ellipse(lx, ly, 5, 3, hash(leaf) * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
     } else if (biome.id === "noel") {
       this.drawPeaks(ctx, cam, viewW, base + 16, 0.0015, "#c5d8ea", 130);
       this.drawPeaks(ctx, cam, viewW, base + 36, 0.0025, "#f7fbff", 80);
@@ -2066,7 +2110,15 @@
       else if (d.kind === "bell") this.drawBell(ctx, d, t);
       else if (d.kind === "stocking") this.drawStocking(ctx, d);
       else if (d.kind === "lantern") this.drawLantern(ctx, d, t);
-      else this.drawMartian(ctx, d, t);
+      else if (d.kind === "turkey") this.drawTurkey(ctx, d);
+      else if (d.kind === "pumpkin") this.drawPumpkin(ctx, d);
+      else if (d.kind === "pie") this.drawPie(ctx, d);
+      else if (d.kind === "corn") this.drawCorn(ctx, d);
+      else if (d.kind === "apple") this.drawApple(ctx, d);
+      else if (d.kind === "bread") this.drawBread(ctx, d);
+      else if (d.kind === "platter") this.drawPlatter(ctx, d);
+      else if (d.kind === "leaf") this.drawLeaf(ctx, d);
+      else if (!this.drawExtraDecor || !this.drawExtraDecor(ctx, d, t)) this.drawMartian(ctx, d, t);
     ctx.restore();
   };
 
@@ -2572,6 +2624,174 @@
     ctx.fill();
   };
 
+  World.prototype.drawTurkey = function (ctx, d) {
+    var x = d.x;
+    var y = gy() - 28;
+    ctx.fillStyle = "#8a3d16";
+    ctx.beginPath();
+    ctx.ellipse(x - 16, y - 8, 22, 20, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#a34e12";
+    ctx.beginPath();
+    ctx.ellipse(x - 22, y - 16, 16, 14, 0.2, 0, Math.PI * 2);
+    ctx.ellipse(x - 26, y - 2, 14, 12, 0.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#c47b34";
+    ctx.beginPath();
+    ctx.ellipse(x + 6, y + 4, 20, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#e2a15a";
+    ctx.beginPath();
+    ctx.ellipse(x + 24, y - 6, 10, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#f2c14e";
+    ctx.beginPath();
+    ctx.moveTo(x + 32, y - 6);
+    ctx.lineTo(x + 44, y - 2);
+    ctx.lineTo(x + 32, y + 2);
+    ctx.fill();
+    ctx.fillStyle = "#d23b4a";
+    ctx.beginPath();
+    ctx.ellipse(x + 24, y + 2, 4, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#1b140c";
+    ctx.beginPath();
+    ctx.arc(x + 27, y - 8, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#f2c14e";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x + 2, y + 16);
+    ctx.lineTo(x - 4, y + 28);
+    ctx.moveTo(x + 12, y + 16);
+    ctx.lineTo(x + 16, y + 28);
+    ctx.stroke();
+  };
+
+  World.prototype.drawPumpkin = function (ctx, d) {
+    var x = d.x;
+    var y = gy() - 14;
+    ctx.fillStyle = "#e07a32";
+    ctx.beginPath();
+    ctx.ellipse(x, y, 16, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#a34e12";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x - 6, y - 10);
+    ctx.quadraticCurveTo(x - 6, y, x - 6, y + 10);
+    ctx.moveTo(x + 6, y - 10);
+    ctx.quadraticCurveTo(x + 6, y, x + 6, y + 10);
+    ctx.stroke();
+    ctx.strokeStyle = "#3d8f4a";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 10);
+    ctx.quadraticCurveTo(x + 6, y - 18, x + 10, y - 14);
+    ctx.stroke();
+  };
+
+  World.prototype.drawPie = function (ctx, d) {
+    var x = d.x;
+    var y = gy() - 8;
+    ctx.fillStyle = "#f2d2a2";
+    ctx.beginPath();
+    ctx.ellipse(x, y, 16, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#a34e12";
+    ctx.beginPath();
+    ctx.ellipse(x, y - 3, 12, 5, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.strokeStyle = "#8a5a32";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 3);
+    ctx.lineTo(x - 8, y + 2);
+    ctx.moveTo(x, y - 3);
+    ctx.lineTo(x + 8, y + 2);
+    ctx.stroke();
+  };
+
+  World.prototype.drawCorn = function (ctx, d) {
+    var x = d.x;
+    ctx.fillStyle = "#7cae3a";
+    ctx.beginPath();
+    ctx.ellipse(x - 6, gy() - 28, 6, 16, -0.4, 0, Math.PI * 2);
+    ctx.ellipse(x + 6, gy() - 28, 6, 16, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#f2c14e";
+    ctx.beginPath();
+    ctx.ellipse(x, gy() - 26, 5, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+  };
+
+  World.prototype.drawApple = function (ctx, d) {
+    ctx.fillStyle = d.vary % 2 ? "#d23b4a" : "#c4563a";
+    ctx.beginPath();
+    ctx.arc(d.x, gy() - 12, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#3d8f4a";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(d.x, gy() - 20);
+    ctx.quadraticCurveTo(d.x + 6, gy() - 26, d.x + 8, gy() - 20);
+    ctx.stroke();
+  };
+
+  World.prototype.drawBread = function (ctx, d) {
+    ctx.fillStyle = "#e2a15a";
+    ctx.beginPath();
+    ctx.ellipse(d.x, gy() - 10, 16, 8, 0, Math.PI, 0);
+    ctx.lineTo(d.x + 16, gy() - 4);
+    ctx.lineTo(d.x - 16, gy() - 4);
+    ctx.fill();
+    ctx.strokeStyle = "#a36a28";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(d.x - 8, gy() - 12);
+    ctx.quadraticCurveTo(d.x, gy() - 6, d.x + 8, gy() - 12);
+    ctx.stroke();
+  };
+
+  World.prototype.drawPlatter = function (ctx, d) {
+    var x = d.x;
+    ctx.fillStyle = "#f7f1e4";
+    ctx.beginPath();
+    ctx.ellipse(x, gy() - 8, 34, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#c9b89a";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = "#c47b34";
+    ctx.beginPath();
+    ctx.ellipse(x, gy() - 16, 16, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#e2a15a";
+    ctx.beginPath();
+    ctx.ellipse(x - 4, gy() - 20, 7, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#d23b4a";
+    ctx.beginPath();
+    ctx.arc(x - 18, gy() - 14, 4, 0, Math.PI * 2);
+    ctx.arc(x + 18, gy() - 13, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#7cae3a";
+    ctx.fillRect(x - 3, gy() - 24, 7, 4);
+  };
+
+  World.prototype.drawLeaf = function (ctx, d) {
+    ctx.fillStyle = d.vary % 2 ? "#c4563a" : "#e07a32";
+    ctx.beginPath();
+    ctx.ellipse(d.x, gy() - 6, 10, 5, d.phase || 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#8a3d16";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(d.x - 8, gy() - 6);
+    ctx.lineTo(d.x + 8, gy() - 6);
+    ctx.stroke();
+  };
+
   World.prototype.drawMartian = function (ctx, d, t) {
     var u = (t * 0.42 + d.phase) % 1;
     var hop = Math.sin(u * Math.PI);
@@ -2612,6 +2832,12 @@
     ctx.stroke();
   };
 
+  World.prototype.recordNudge = function (x, group) {
+    var game = DM.game;
+    if (!game || !game.recordNudge) return 0;
+    return game.recordNudge(x, group);
+  };
+
   World.prototype.drawPits = function (ctx, biome, cam, viewW) {
     var depth = DM.config.pitDepth;
     var floor = gy() + depth;
@@ -2619,6 +2845,17 @@
     for (i = 0; i < this.pits.length; i++) {
       var p = this.pits[i];
       if (p.x + p.w < cam.x - 40 || p.x > cam.x + viewW + 40) continue;
+      var nudge = this.recordNudge(p.x + p.w * 0.5, "trap");
+      if (nudge) {
+        ctx.fillStyle = biome.deep;
+        ctx.fillRect(p.x, gy() + 18, p.w, 420);
+        ctx.fillStyle = biome.ground;
+        ctx.fillRect(p.x, gy(), p.w, 28);
+        ctx.fillStyle = biome.accent;
+        ctx.fillRect(p.x, gy(), p.w, 6);
+        ctx.save();
+        ctx.translate(nudge, 0);
+      }
       ctx.fillStyle = biome.deep;
       ctx.fillRect(p.x, floor, p.w, 420);
       ctx.fillStyle = biome.pit;
@@ -2631,16 +2868,17 @@
         ctx.fillStyle = "#1a140e";
         ctx.fillRect(p.x + 16, gy() + 8, p.w - 32, depth - 16);
       } else {
-      ctx.fillStyle = biome.ink;
-      var sx;
-      for (sx = p.x + 16; sx < p.x + p.w - 18; sx += 16) {
-        ctx.beginPath();
-        ctx.moveTo(sx, floor - 8);
-        ctx.lineTo(sx + 8, floor - 34);
-        ctx.lineTo(sx + 16, floor - 8);
-        ctx.fill();
+        ctx.fillStyle = biome.ink;
+        var sx;
+        for (sx = p.x + 16; sx < p.x + p.w - 18; sx += 16) {
+          ctx.beginPath();
+          ctx.moveTo(sx, floor - 8);
+          ctx.lineTo(sx + 8, floor - 34);
+          ctx.lineTo(sx + 16, floor - 8);
+          ctx.fill();
+        }
       }
-      }
+      if (nudge) ctx.restore();
     }
   };
 
@@ -3145,6 +3383,15 @@
       if (e.dead) continue;
       var ex = e.x;
       if (ex < cam.x - 80 || ex > cam.x + viewW + 120) continue;
+      var group = "";
+      if (e.kind === "block" || e.kind === "platform") group = "build";
+      else if (e.kind === "step") group = "stair";
+      else if (e.kind === "spike") group = "trap";
+      var nudge = group ? this.recordNudge(ex + (e.w || 0) * 0.5, group) : 0;
+      if (nudge) {
+        ctx.save();
+        ctx.translate(nudge, 0);
+      }
       if (e.kind === "block" || e.kind === "step") this.drawBlock(ctx, biome, e);
       else if (e.kind === "spike") this.drawSpike(ctx, biome, e);
       else if (e.kind === "flame") this.drawFlame(ctx, e);
@@ -3157,6 +3404,7 @@
       else if (e.kind === "booster") this.drawBooster(ctx, e);
       else if (e.kind === "hunter") this.drawHunter(ctx, e);
       if (e.burning) this.drawBurn(ctx, e);
+      if (nudge) ctx.restore();
     }
   };
 
@@ -4157,4 +4405,6 @@
     world.songBeats = (world.finish - world.songStart) / P.cell;
     return world;
   };
+
+  DM.World = World;
 })();

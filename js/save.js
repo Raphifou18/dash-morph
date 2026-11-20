@@ -15,7 +15,9 @@
     times: "dashmorph.times",
     diamonds: "dashmorph.diamonds",
     ownedAccessories: "dashmorph.ownedAccessories",
-    accessory: "dashmorph.accessory"
+    accessory: "dashmorph.accessory",
+    bestDistance: "dashmorph.bestDistance",
+    scores: "dashmorph.scores"
   };
 
   var data = null;
@@ -52,6 +54,8 @@
     var diamonds = 0;
     var ownedAccessories = [];
     var accessory = "";
+    var bestDistance = 0;
+    var scores = [];
     if (store) {
       var parsedCoins = parseInt(store.getItem(KEYS.coins) || "0", 10);
       if (isFinite(parsedCoins) && parsedCoins > 0) coins = parsedCoins | 0;
@@ -93,9 +97,16 @@
         ownedAccessories = parsedAccessories.filter(function (id) { return typeof id === "string"; });
       }
       accessory = store.getItem(KEYS.accessory) || "";
+      var parsedBest = parseInt(store.getItem(KEYS.bestDistance) || "0", 10);
+      if (isFinite(parsedBest) && parsedBest > 0) bestDistance = parsedBest | 0;
+      scores = readScores(readJSON(store.getItem(KEYS.scores), []));
     }
+    if (!scores.length && bestDistance > 0) scores = [{ m: bestDistance, s: 0 }];
+    if (scores.length && scores[0].m > bestDistance) bestDistance = scores[0].m;
     if (!DM.catalog) {
       data = blank(coins, owned, equipped, unlockedLevel, cleared, tracks, times, diamonds, ownedAccessories, accessory, unlockedTrack, clearedTracks);
+      data.bestDistance = bestDistance;
+      data.scores = scores;
       return data;
     }
     if (!find(equipped)) equipped = "classique";
@@ -119,9 +130,25 @@
       times: times,
       diamonds: diamonds,
       ownedAccessories: ownedAccessories,
-      accessory: accessory
+      accessory: accessory,
+      bestDistance: bestDistance,
+      scores: scores
     };
     return data;
+  }
+
+  function readScores(raw) {
+    if (Object.prototype.toString.call(raw) !== "[object Array]") return [];
+    var rows = [];
+    var i;
+    for (i = 0; i < raw.length; i++) {
+      var row = raw[i];
+      if (!row || !isFinite(row.m) || row.m <= 0) continue;
+      rows.push({ m: row.m | 0, s: isFinite(row.s) && row.s > 0 ? Math.round(row.s * 10) / 10 : 0 });
+    }
+    rows.sort(function (a, b) { return b.m - a.m || a.s - b.s; });
+    if (rows.length > 5) rows.length = 5;
+    return rows;
   }
 
   function knownAccessory(id) {
@@ -144,7 +171,9 @@
       times: times || {},
       diamonds: diamonds || 0,
       ownedAccessories: ownedAccessories || [],
-      accessory: accessory || ""
+      accessory: accessory || "",
+      bestDistance: 0,
+      scores: []
     };
   }
 
@@ -172,6 +201,8 @@
       store.setItem(KEYS.diamonds, String(data.diamonds | 0));
       store.setItem(KEYS.ownedAccessories, JSON.stringify(data.ownedAccessories || []));
       store.setItem(KEYS.accessory, data.accessory || "");
+      store.setItem(KEYS.bestDistance, String(data.bestDistance | 0));
+      store.setItem(KEYS.scores, JSON.stringify(data.scores || []));
     } catch (err) {}
   }
 
@@ -237,6 +268,27 @@
       if (data.unlockedTrack > last) data.unlockedTrack = last;
       persist();
       return best;
+    },
+    addScore: function (meters, seconds) {
+      meters = Math.floor(Number(meters) || 0);
+      seconds = Math.round((Number(seconds) || 0) * 10) / 10;
+      if (meters <= 0) return this.ready().scores || [];
+      var save = this.ready();
+      if (!save.scores) save.scores = [];
+      save.scores.push({ m: meters, s: seconds > 0 ? seconds : 0 });
+      save.scores = readScores(save.scores);
+      if (save.scores.length && save.scores[0].m > (save.bestDistance | 0)) save.bestDistance = save.scores[0].m;
+      persist();
+      return save.scores;
+    },
+    noteDistance: function (meters) {
+      meters = Math.floor(Number(meters) || 0);
+      if (meters < 0) meters = 0;
+      var save = this.ready();
+      if (meters <= (save.bestDistance | 0)) return save.bestDistance | 0;
+      save.bestDistance = meters;
+      persist();
+      return save.bestDistance;
     },
     markTime: function (id, seconds) {
       this.ready();

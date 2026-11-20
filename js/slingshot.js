@@ -8,7 +8,29 @@
     ice: ["#e8f7ff", "#9ad7ff", "#ffffff", "#d6f3ff"],
     neon: ["#39f3ff", "#ff3df0", "#f6ff5a", "#ffffff"],
     leaves: ["#7cdb4a", "#2f9e44", "#d4f5a6", "#e8ffc8"],
-    stars: ["#ffffff", "#9eb6ff", "#ffe38a", "#d0dcff"]
+    stars: ["#ffffff", "#9eb6ff", "#ffe38a", "#d0dcff"],
+    holly: ["#d23b4a", "#f4f8fb", "#2f7a3a", "#ffe08a"],
+    harvest: ["#e07a32", "#f2c14e", "#8a4e1d", "#fff1c9"],
+    coral: ["#ff6b8a", "#7ee0ff", "#ffd0a8", "#fff6ea"],
+    lava: ["#ff5a1f", "#ffb15a", "#2a1612", "#ffe0c0"],
+    spore: ["#ff6b6b", "#e6c0ff", "#ffe6a8", "#6a4a86"],
+    prism: ["#7ef0ff", "#d6e4ff", "#9b8cff", "#ffffff"],
+    breeze: ["#ffffff", "#9fd0ff", "#c6e28a", "#fff6d0"],
+    ooze: ["#c6ff3a", "#7a4ad2", "#e8ff9a", "#3d6a22"],
+    salt: ["#fff6e4", "#7eb8c8", "#e6d2a4", "#f2e2c4"],
+    glow: ["#3dffc2", "#7ef0ff", "#041820", "#d0fff4"],
+    root: ["#8fbf6a", "#6a5a3a", "#d7e28a", "#1c2414"],
+    steam: ["#ffffff", "#d7cbb8", "#f2c14e", "#8eb4c8"],
+    cloud: ["#ffffff", "#f2c14e", "#c5d8f0", "#f7fbff"],
+    curse: ["#7a4ad2", "#c8b8e0", "#120c18", "#e0d4f4"],
+    sand: ["#f6e2a8", "#e2c48a", "#c47a48", "#fff1d0"],
+    alien: ["#ff8ad4", "#7dff6a", "#ffe0f4", "#3a1860"],
+    flip: ["#8ec8f0", "#6a4a32", "#ffffff", "#f4f8fb"],
+    shade: ["#6a4a88", "#b8a8d0", "#05040a", "#e4d8f8"],
+    sugar: ["#ff8ec4", "#fff0a8", "#ffffff", "#ffd0ea"],
+    brass: ["#e2b15a", "#f2efe6", "#6a6258", "#fff6d8"],
+    gold: ["#fff4c4", "#f0b429", "#a87818", "#fff8dc"],
+    bluelava: ["#3ec8ff", "#7ef0ff", "#061018", "#d8f6ff"]
   };
 
   DM.sling = {

@@ -110,11 +110,15 @@
       el("btn-pause").hidden = !(name === "play" || name === "slingshot" || name === "pause");
       el("btn-resume").hidden = name !== "pause";
       el("dock-prime").hidden = name !== "dead";
+      el("dock-score").hidden = name !== "dead";
       if (name === "pause") el("dock-title").textContent = "Pause";
       if (name === "dead") {
         el("dock-title").textContent = "Perdu";
         var prime = game && game.lastPrime ? game.lastPrime : 0;
         el("dock-prime").textContent = prime > 0 ? "+" + prime + " pièces de distance" : "Prime de distance : 0";
+        var runScore = game ? Math.floor(game.distance()) : 0;
+        var beaten = game && game.mode === "endless" && game.recordPlayed;
+        el("dock-score").textContent = beaten ? "Cette partie " + runScore + " m · nouveau record" : "Cette partie " + runScore + " m";
       }
       if (name === "clear" && game) {
         var next = el("btn-next");
@@ -136,6 +140,7 @@
         }
       }
       if (name === "menu") this.paintMenu();
+      this.renderScores();
       if (name === "adventure") this.renderLevels();
       if (name === "tracks") this.renderTracks();
       if (name === "shop") this.renderShop();
@@ -146,6 +151,11 @@
       el("menu-coins").textContent = String(save.coins);
       el("shop-coins").textContent = String(save.coins);
       el("coins").textContent = String(save.coins);
+      var bestEl = el("hud-best");
+      if (bestEl) {
+        bestEl.textContent = "Record " + (save.bestDistance | 0) + " m";
+        bestEl.hidden = !(game && (game.mode === "endless" || game.mode === "past"));
+      }
       var gems = String(save.diamonds | 0);
       el("menu-gems").textContent = gems;
       el("shop-gems").textContent = gems;
@@ -177,10 +187,37 @@
       var hint = game.player.onChicken ? "Assis sur le poulet. Droite, D ou clic droit. Clic gauche ou Z, puis encore en l’air" : (game.player.form === "ship" ? "Droite, D ou clic droit pour avancer, maintenir le clic gauche pour monter" : "Droite, D ou clic droit pour avancer, clic gauche ou Z pour sauter");
       if (game.mode === "tempo" && game.world && game.world.waiting) hint = "Droite, D, clic droit, clic gauche ou Z pour commencer";
       el("hud-status").textContent = form + " · " + size + (bonus ? " · " + bonus : "") + " · " + hint;
-      var locked = game.state === "ceilingFall" || game.state === "ceilingWait" || game.state === "ceilingSave" || game.state === "pitfall" || game.state === "iris" || game.state === "pastwait" || game.state === "pastdrop" || game.state === "burn";
+      var locked = game.state === "ceilingFall" || game.state === "ceilingWait" || game.state === "ceilingSave" || game.state === "pitfall" || game.state === "iris" || game.state === "pastwait" || game.state === "pastdrop" || game.state === "burn" || game.state === "record";
       if (locked) el("btn-pause").hidden = true;
       var equipped = DM.shop.item(save.equipped);
       el("menu-equipped").textContent = equipped.name;
+    },
+    renderScores: function () {
+      var list = el("score-list");
+      if (!list || !DM.save) return;
+      var scores = DM.save.ready().scores || [];
+      list.innerHTML = "";
+      if (!scores.length) {
+        var empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "Aucune course encore";
+        list.appendChild(empty);
+        return;
+      }
+      var i;
+      for (i = 0; i < scores.length; i++) {
+        var row = document.createElement("li");
+        var rank = document.createElement("span");
+        var dist = document.createElement("span");
+        var time = document.createElement("span");
+        rank.textContent = String(i + 1);
+        dist.textContent = scores[i].m + " m";
+        time.textContent = scores[i].s > 0 ? formatTime(scores[i].s) : "—";
+        row.appendChild(rank);
+        row.appendChild(dist);
+        row.appendChild(time);
+        list.appendChild(row);
+      }
     },
     paintMenu: function () {
       var save = DM.save.ready();

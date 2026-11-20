@@ -55,10 +55,13 @@
         <p id="hud-status"></p>
       </div>
       <div id="hud-right">
-        <div id="lives-wrap"><span class="heart" aria-hidden="true"></span><span id="lives">0</span><span id="life-pop">-1</span></div>
-        <div id="coins-wrap"><span class="coin" aria-hidden="true"></span><span id="coins">0</span></div>
-        <div id="gems-wrap"><span class="gem" aria-hidden="true"></span><span id="gems">0</span></div>
-        <button id="btn-pause" type="button" aria-label="Pause"><span></span><span></span></button>
+        <div id="hud-purse">
+          <div id="lives-wrap"><span class="heart" aria-hidden="true"></span><span id="lives">0</span><span id="life-pop">-1</span></div>
+          <div id="coins-wrap"><span class="coin" aria-hidden="true"></span><span id="coins">0</span></div>
+          <div id="gems-wrap"><span class="gem" aria-hidden="true"></span><span id="gems">0</span></div>
+          <button id="btn-pause" type="button" aria-label="Pause"><span></span><span></span></button>
+        </div>
+        <p id="hud-best" hidden>Record 0 m</p>
       </div>
     </div>
 
@@ -78,8 +81,13 @@
           <button id="btn-adventure" type="button">Aventure</button>
           <button id="btn-tempo" type="button">Musique</button>
           <button id="btn-shop" type="button" class="ghost">Boutique</button>
+          <p class="credit">fait par Raphael Jegouzo</p>
         </div>
       </div>
+      <aside class="scoreboard">
+        <h2>Meilleurs scores</h2>
+        <ol id="score-list"></ol>
+      </aside>
     </section>
 
     <section id="screen-levels" hidden>
@@ -134,6 +142,7 @@
     <div id="action-dock" hidden>
       <div class="stack">
         <p id="dock-title">Pause</p>
+        <p id="dock-score" hidden></p>
         <p id="dock-prime" hidden></p>
         <button id="btn-resume" type="button" hidden>Reprendre</button>
         <div class="row">
@@ -160,6 +169,7 @@
   <script src="js/shop.js"></script>
   <script src="js/player.js"></script>
   <script src="js/world.js"></script>
+  <script src="js/biomes.js"></script>
   <script src="js/music.js"></script>
   <script src="js/bonuses.js"></script>
   <script src="js/slingshot.js"></script>
