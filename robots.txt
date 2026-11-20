@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://raphifou18.github.io/dash-morph/sitemap.xml
